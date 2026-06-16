@@ -104,10 +104,6 @@ body.modal-open {
   }
 }
 
-.range-accent {
-  accent-color: #2f6b4f;
-}
-
 .nav-link,
 .chip-link,
 .cta-button,
@@ -160,7 +156,8 @@ body.modal-open {
 .cta-button:hover,
 .secondary-button:hover,
 .chip-link:hover,
-.wheel-button:hover {
+.wheel-button:hover,
+.range-card:hover {
   transform: translateY(-2px);
 }
 
@@ -176,12 +173,11 @@ body.modal-open {
   outline-offset: 3px;
 }
 
-.scroll-chip-row::-webkit-scrollbar {
-  display: none;
-}
-
-.scroll-chip-row {
-  scrollbar-width: none;
+button.nav-link {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
 }
 
 input[type='number'],
@@ -211,9 +207,19 @@ label span.label-title {
   font-weight: 600;
 }
 
+.range-field {
+  display: grid;
+  gap: 0.4rem;
+}
+
+input[type='range'] {
+  height: 10px;
+  border-radius: 999px;
+}
+
 .wheel-field {
   display: grid;
-  gap: 0.5rem;
+  gap: 0.6rem;
 }
 
 .wheel-controls {
@@ -223,9 +229,16 @@ label span.label-title {
   align-items: center;
 }
 
+.wheel-controls-rich {
+  border-radius: 1.35rem;
+  background: linear-gradient(180deg, rgba(247, 251, 248, 0.98), rgba(238, 247, 241, 0.96));
+  border: 1px solid rgba(15, 61, 46, 0.08);
+  padding: 0.75rem;
+}
+
 .wheel-button {
-  width: 48px;
-  height: 48px;
+  width: 52px;
+  height: 52px;
   border-radius: 999px;
   border: 1px solid rgba(15, 61, 46, 0.12);
   background: white;
@@ -238,10 +251,19 @@ label span.label-title {
 
 .wheel-display-wrap {
   position: relative;
+  overflow: hidden;
+  border-radius: 1.1rem;
+}
+
+.wheel-lens {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 28%, rgba(255, 255, 255, 0) 72%, rgba(255, 255, 255, 0.5));
+  pointer-events: none;
 }
 
 .wheel-display {
-  min-height: 60px;
+  min-height: 68px;
   border-radius: 1.1rem;
   border: 1px solid rgba(15, 61, 46, 0.12);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(240, 249, 243, 0.96));
@@ -250,9 +272,19 @@ label span.label-title {
   align-items: center;
   justify-content: center;
   text-align: center;
-  font-weight: 700;
+  font-weight: 800;
+  font-size: 1.1rem;
+  letter-spacing: -0.02em;
   color: #0f3d2e;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 12px 24px rgba(16, 35, 28, 0.06);
+}
+
+.wheel-scale {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.78rem;
+  color: rgba(16, 35, 28, 0.48);
 }
 
 .bar-track {
@@ -299,6 +331,11 @@ label span.label-title {
   .wheel-button {
     width: 100%;
     height: 44px;
+  }
+
+  .wheel-display {
+    min-height: 62px;
+    font-size: 1rem;
   }
 }
 

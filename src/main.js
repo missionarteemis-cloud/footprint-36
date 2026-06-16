@@ -1,19 +1,12 @@
 const COUNTRY_GRID_FACTORS = {
-  it: { label: 'Italia', electricityKgPerKwh: 0.23, heatingFallback: 'gas', heatingNote: 'Default su mix residenziale italiano recente.' },
-  fr: { label: 'Francia', electricityKgPerKwh: 0.06, heatingFallback: 'district', heatingNote: 'Rete elettrica molto bassa grazie a nucleare e idroelettrico.' },
-  de: { label: 'Germania', electricityKgPerKwh: 0.38, heatingFallback: 'gas', heatingNote: 'Mix ancora più carbon-intensive della media UE.' },
-  es: { label: 'Spagna', electricityKgPerKwh: 0.16, heatingFallback: 'heatpump', heatingNote: 'Mix elettrico relativamente più pulito grazie a eolico e solare.' },
-  uk: { label: 'Regno Unito', electricityKgPerKwh: 0.20, heatingFallback: 'gas', heatingNote: 'Mix in discesa, ma il riscaldamento domestico resta spesso a gas.' },
-  us: { label: 'Stati Uniti', electricityKgPerKwh: 0.39, heatingFallback: 'gas', heatingNote: 'Default ampio, media nazionale indicativa.' },
-  eu: { label: 'Media UE', electricityKgPerKwh: 0.25, heatingFallback: 'gas', heatingNote: 'Fallback europeo per stime meno precise.' }
-}
-
-const GREEN_POWER_SHARES = {
-  0: 0,
-  25: 0.25,
-  50: 0.5,
-  75: 0.75,
-  100: 1
+  it: { label: 'Italia', electricityKgPerKwh: 0.311, heatingFallback: 'gas', heatingNote: 'Media 2024, sistema elettrico più carbon-intensive della media UE.' },
+  fr: { label: 'Francia', electricityKgPerKwh: 0.022, heatingFallback: 'district', heatingNote: 'Rete 2024 molto bassa grazie a nucleare e idroelettrico.' },
+  de: { label: 'Germania', electricityKgPerKwh: 0.363, heatingFallback: 'gas', heatingNote: 'Mix 2024 ancora più carbon-intensive della media UE.' },
+  es: { label: 'Spagna', electricityKgPerKwh: 0.108, heatingFallback: 'heatpump', heatingNote: 'Mix 2024 relativamente pulito grazie a eolico e solare.' },
+  uk: { label: 'Regno Unito', electricityKgPerKwh: 0.124, heatingFallback: 'gas', heatingNote: 'Rete 2024 in forte discesa, gas ancora frequente in casa.' },
+  us: { label: 'Stati Uniti', electricityKgPerKwh: 0.384, heatingFallback: 'gas', heatingNote: 'Media nazionale 2024, indicativa e molto variabile per stato.' },
+  eu: { label: 'Media UE', electricityKgPerKwh: 0.175, heatingFallback: 'gas', heatingNote: 'Fallback europeo 2024 per stime meno precise.' },
+  world: { label: 'Media mondo', electricityKgPerKwh: 0.445, heatingFallback: 'gas', heatingNote: 'Riferimento globale 2024, usato solo come confronto.' }
 }
 
 const questions = [
@@ -71,7 +64,7 @@ const questions = [
   },
   {
     key: 'shortFlights',
-    label: 'Voli brevi europei in un anno',
+    label: 'Voli brevi europei andata/ritorno in un anno',
     type: 'number',
     min: 0,
     max: 20,
@@ -82,7 +75,7 @@ const questions = [
   },
   {
     key: 'longFlights',
-    label: 'Voli lunghi intercontinentali in un anno',
+    label: 'Voli lunghi intercontinentali andata/ritorno in un anno',
     type: 'number',
     min: 0,
     max: 12,
@@ -131,16 +124,13 @@ const questions = [
   {
     key: 'greenPower',
     label: 'Quanta elettricità proviene da fonti rinnovabili?',
-    type: 'select',
-    defaultValue: '25',
-    group: 'Casa',
-    options: [
-      ['0', 'Quasi nulla / non so'],
-      ['25', 'Una quota bassa'],
-      ['50', 'Circa metà'],
-      ['75', 'Gran parte'],
-      ['100', 'Tutta o quasi tutta']
-    ]
+    type: 'range',
+    min: 0,
+    max: 100,
+    step: 5,
+    defaultValue: 25,
+    unit: '%',
+    group: 'Casa'
   },
   {
     key: 'meatMeals',
@@ -180,6 +170,8 @@ const questions = [
   }
 ]
 
+const questionGroups = ['Trasporti', 'Casa', 'Dieta', 'Consumi']
+
 const sampleValues = {
   country: 'it',
   carKm: 14000,
@@ -190,7 +182,7 @@ const sampleValues = {
   homeSize: 95,
   householdPeople: 2,
   heatingType: 'gas',
-  greenPower: '25',
+  greenPower: 25,
   meatMeals: 8,
   dairyLevel: 'high',
   shoppingLevel: 'high'
@@ -205,8 +197,8 @@ const factors = {
     ev: 0.06
   },
   publicKgPerKm: 0.05,
-  shortFlightTons: 0.35,
-  longFlightTons: 1.6,
+  shortFlightTons: 0.5,
+  longFlightTons: 1.8,
   heatingTonsPerSqm: {
     gas: 0.038,
     oil: 0.052,
@@ -250,8 +242,12 @@ const planetCard = document.querySelector('#planet-card')
 const planetScore = document.querySelector('#planet-score')
 const whatIfCar = document.querySelector('#whatif-car')
 const whatIfGreen = document.querySelector('#whatif-green')
+const whatIfFlight = document.querySelector('#whatif-flight')
+const whatIfMeat = document.querySelector('#whatif-meat')
 const whatIfCarValue = document.querySelector('#whatif-car-value')
 const whatIfGreenValue = document.querySelector('#whatif-green-value')
+const whatIfFlightValue = document.querySelector('#whatif-flight-value')
+const whatIfMeatValue = document.querySelector('#whatif-meat-value')
 const whatIfOutput = document.querySelector('#whatif-output')
 const whatIfDelta = document.querySelector('#whatif-delta')
 const calculatorModal = document.querySelector('#calculator-modal')
@@ -260,18 +256,20 @@ const openCalculatorButtons = document.querySelectorAll('[data-open-calculator]'
 const closeCalculatorBtn = document.querySelector('#close-calculator')
 const heroMetrics = document.querySelector('#hero-metrics')
 const intensityTable = document.querySelector('#intensity-table')
+const progressValue = document.querySelector('#progress-value')
+const progressBar = document.querySelector('#progress-bar')
 
 let latestResult = null
 let lastFocusedElement = null
-let activeWheel = null
 
 renderForm()
 renderGridIntensityTable()
 setupReveal()
 setupModal()
 setupWheelInputs()
-updatePlanetMood(4.8)
+updatePlanetMood(null)
 updateHeroMetrics()
+updateProgress()
 
 calculateBtn.addEventListener('click', () => {
   const values = getValues()
@@ -283,25 +281,33 @@ calculateBtn.addEventListener('click', () => {
 sampleBtn.addEventListener('click', () => {
   fillSample(sampleValues)
   syncWheelDisplays()
+  updateRangeDisplays()
   const result = computeFootprint(getValues())
   latestResult = result
   renderResults(result)
 })
 
-whatIfCar.addEventListener('input', updateWhatIf)
-whatIfGreen.addEventListener('input', updateWhatIf)
+whatIfCar?.addEventListener('input', updateWhatIf)
+whatIfGreen?.addEventListener('input', updateWhatIf)
+whatIfFlight?.addEventListener('change', updateWhatIf)
+whatIfMeat?.addEventListener('change', updateWhatIf)
 
 function renderForm() {
-  const markup = questions
-    .map((question) => {
-      const field = renderField(question)
-
+  const markup = questionGroups
+    .map((group) => {
+      const groupQuestions = questions.filter((question) => question.group === group)
       return `
-        <label class="block rounded-[1.45rem] border border-pine/10 bg-[#fbfdfb] p-4 transition hover:-translate-y-0.5 hover:border-moss/20">
-          <span class="label-title">${question.label}</span>
-          <span class="mb-3 block text-xs uppercase tracking-[0.18em] text-ink/40">${question.group}</span>
-          ${field}
-        </label>
+        <section class="rounded-[1.75rem] border border-pine/8 bg-[#fcfdfc] p-5 shadow-sm">
+          <div class="mb-4 flex items-center justify-between gap-4">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-[0.22em] text-moss">${group}</p>
+              <p class="mt-1 text-sm text-ink/56">${groupDescription(group)}</p>
+            </div>
+          </div>
+          <div class="grid gap-4 lg:grid-cols-2">
+            ${groupQuestions.map((question) => renderQuestion(question)).join('')}
+          </div>
+        </section>
       `
     })
     .join('')
@@ -315,6 +321,20 @@ function renderForm() {
     updateHeroMetrics()
   })
   heatingSelect?.addEventListener('change', updateHeroMetrics)
+
+  form.querySelectorAll('input, select').forEach((element) => {
+    element.addEventListener('input', updateProgress)
+    element.addEventListener('change', updateProgress)
+  })
+}
+
+function renderQuestion(question) {
+  return `
+    <label class="block rounded-[1.45rem] border border-pine/10 bg-white p-4 transition hover:-translate-y-0.5 hover:border-moss/20">
+      <span class="label-title">${question.label}</span>
+      ${renderField(question)}
+    </label>
+  `
 }
 
 function renderField(question) {
@@ -324,10 +344,22 @@ function renderField(question) {
     </select>`
   }
 
+  if (question.type === 'range') {
+    return `
+      <div class="range-field">
+        <div class="flex items-center justify-between text-sm text-ink/58">
+          <span>Quota dichiarata</span>
+          <span id="${question.key}-value" class="font-semibold text-pine">${question.defaultValue}%</span>
+        </div>
+        <input id="${question.key}" name="${question.key}" type="range" min="${question.min}" max="${question.max}" step="${question.step}" value="${question.defaultValue}" class="mt-3 w-full accent-moss" />
+      </div>
+    `
+  }
+
   if (question.type === 'wheel') {
     return `
       <div class="wheel-field" data-wheel-root>
-        <div class="wheel-controls">
+        <div class="wheel-controls wheel-controls-rich">
           <button type="button" class="wheel-button" data-wheel-decrement aria-label="Riduci ${question.label}">−</button>
           <div class="wheel-display-wrap">
             <input
@@ -340,6 +372,7 @@ function renderField(question) {
               value="${question.defaultValue}"
               class="sr-only"
             />
+            <div class="wheel-lens" aria-hidden="true"></div>
             <div
               class="wheel-display"
               data-wheel-display
@@ -354,12 +387,25 @@ function renderField(question) {
           </div>
           <button type="button" class="wheel-button" data-wheel-increment aria-label="Aumenta ${question.label}">+</button>
         </div>
-        <p class="mt-2 text-xs text-ink/45">Scorri, usa ↑↓ o i pulsanti. Step ${question.step}.</p>
+        <div class="wheel-scale" aria-hidden="true">
+          <span>−${question.step}</span>
+          <span>scorri o usa ↑↓</span>
+          <span>+${question.step}</span>
+        </div>
       </div>
     `
   }
 
   return `<input id="${question.key}" name="${question.key}" type="number" min="${question.min}" max="${question.max}" step="${question.step}" placeholder="${question.placeholder}" value="${question.defaultValue}" />`
+}
+
+function groupDescription(group) {
+  return {
+    Trasporti: 'Auto, mezzi e voli che pesano di più sul totale.',
+    Casa: 'Spazio, persone, rete elettrica e riscaldamento.',
+    Dieta: 'Abitudini alimentari ad alto impatto annuale.',
+    Consumi: 'Shopping, upgrade e acquisti meno intuitivi.'
+  }[group]
 }
 
 function setupModal() {
@@ -390,6 +436,7 @@ function setupModal() {
 function openCalculatorModal(trigger) {
   lastFocusedElement = trigger
   calculatorModal.classList.remove('hidden')
+  calculatorModal.setAttribute('aria-hidden', 'false')
   requestAnimationFrame(() => calculatorModal.classList.add('is-open'))
   document.body.classList.add('modal-open')
   const firstFocusable = getFocusableElements()[0]
@@ -399,6 +446,7 @@ function openCalculatorModal(trigger) {
 function closeCalculatorModal() {
   calculatorModal.classList.remove('is-open')
   calculatorModal.classList.add('hidden')
+  calculatorModal.setAttribute('aria-hidden', 'true')
   document.body.classList.remove('modal-open')
   lastFocusedElement?.focus()
 }
@@ -461,18 +509,21 @@ function setupWheelInputs() {
       }
     })
 
-    display.addEventListener('wheel', (event) => {
-      event.preventDefault()
-      const delta = event.deltaY > 0 ? -step : step
-      adjustWheel(input, display, delta, question)
-    }, { passive: false })
-
-    display.addEventListener('focus', () => {
-      activeWheel = display
-    })
+    display.addEventListener(
+      'wheel',
+      (event) => {
+        event.preventDefault()
+        const delta = event.deltaY > 0 ? -step : step
+        adjustWheel(input, display, delta, question)
+      },
+      { passive: false }
+    )
   })
 
+  document.querySelector('#greenPower')?.addEventListener('input', updateRangeDisplays)
+
   syncWheelDisplays()
+  updateRangeDisplays()
   applyCountryDefaults(true)
 }
 
@@ -483,6 +534,12 @@ function syncWheelDisplays() {
     const question = questions.find((item) => item.key === input.id)
     setWheelValue(input, display, Number(input.value), question, false)
   })
+}
+
+function updateRangeDisplays() {
+  const greenPower = document.querySelector('#greenPower')
+  const greenValue = document.querySelector('#greenPower-value')
+  if (greenPower && greenValue) greenValue.textContent = `${greenPower.value}%`
 }
 
 function adjustWheel(input, display, delta, question) {
@@ -515,7 +572,8 @@ function applyCountryDefaults(initial = false) {
 function getValues() {
   return questions.reduce((acc, question) => {
     const element = document.querySelector(`#${question.key}`)
-    acc[question.key] = ['number', 'wheel'].includes(question.type) ? Number(element.value || 0) : element.value
+    if (!element) return acc
+    acc[question.key] = ['number', 'wheel', 'range'].includes(question.type) ? Number(element.value || 0) : element.value
     return acc
   }, {})
 }
@@ -526,6 +584,8 @@ function fillSample(values) {
     if (element) element.value = value
   })
   updateHeroMetrics()
+  updateRangeDisplays()
+  updateProgress()
 }
 
 function computeFootprint(values) {
@@ -541,7 +601,7 @@ function computeFootprint(values) {
   const heating = (homeSize * factors.heatingTonsPerSqm[heatingType]) / householdPeople
 
   const baseElectricityKwh = 900 + homeSize * 18
-  const renewableShare = GREEN_POWER_SHARES[values.greenPower] ?? 0
+  const renewableShare = clamp(Number(values.greenPower) / 100, 0, 1)
   const adjustedGridKgPerKwh = Math.max(country.electricityKgPerKwh * (1 - renewableShare * 0.85), 0.015)
   const electricity = ((baseElectricityKwh / householdPeople) * adjustedGridKgPerKwh) / 1000
 
@@ -571,9 +631,10 @@ function computeFootprint(values) {
     worldDelta: round(total - 6.6)
   }
 
-  const confidenceNote = values.heatingType === 'unknown'
-    ? `Hai scelto “Non lo so” sul riscaldamento. Uso un default medio per ${country.label.toLowerCase()}, quindi questa parte è meno precisa.`
-    : `Uso un fattore elettrico indicativo per ${country.label.toLowerCase()} (${country.electricityKgPerKwh} kg CO₂e/kWh), corretto in base alla quota rinnovabile dichiarata.`
+  const confidenceNote =
+    values.heatingType === 'unknown'
+      ? `Hai scelto “Non lo so” sul riscaldamento. Uso un default medio per ${country.label.toLowerCase()}, quindi questa parte è meno precisa.`
+      : `Uso un fattore elettrico indicativo per ${country.label.toLowerCase()} (${country.electricityKgPerKwh.toFixed(3)} kg CO₂e/kWh), corretto in base alla quota rinnovabile continua dichiarata.`
 
   return {
     total,
@@ -611,8 +672,7 @@ function renderResults(result) {
   renderChallenge(result.challenge)
   updatePlanetMood(result.total)
 
-  whatIfCar.value = 0
-  whatIfGreen.value = 0
+  resetWhatIfControls()
   updateWhatIf()
 }
 
@@ -665,14 +725,17 @@ function renderChallenge(challenge) {
 }
 
 function renderGridIntensityTable() {
-  intensityTable.innerHTML = Object.values(COUNTRY_GRID_FACTORS)
-    .map((item) => `
+  intensityTable.innerHTML = ['it', 'fr', 'de', 'es', 'uk', 'us', 'eu']
+    .map((key) => COUNTRY_GRID_FACTORS[key])
+    .map(
+      (item) => `
       <tr>
         <td class="py-3 pr-4 font-medium text-pine">${item.label}</td>
-        <td class="py-3 pr-4 text-ink/68">${item.electricityKgPerKwh.toFixed(2)} kg CO₂e/kWh</td>
+        <td class="py-3 pr-4 text-ink/68">${item.electricityKgPerKwh.toFixed(3)} kg CO₂e/kWh</td>
         <td class="py-3 text-ink/58">${item.heatingNote}</td>
       </tr>
-    `)
+    `
+    )
     .join('')
 }
 
@@ -685,7 +748,7 @@ function buildTips(values, ordered, country, heatingType) {
       title: 'Taglia i km fossili prima del resto',
       body:
         values.longFlights > 0
-          ? 'Nel tuo profilo i voli lunghi spingono molto il totale. Se riesci a sostituirne anche solo uno o a volare meno spesso, il taglio è immediato.'
+          ? 'Nel tuo profilo i voli lunghi andata/ritorno spingono molto il totale. Se riesci a sostituirne anche solo uno o a volare meno spesso, il taglio è immediato.'
           : 'Nel tuo profilo l’auto pesa parecchio. Ridurre km, condividere tratte o passare a un mezzo più efficiente può abbassare la stima in modo visibile.'
     })
   }
@@ -703,14 +766,12 @@ function buildTips(values, ordered, country, heatingType) {
   if (values.meatMeals >= 7 || values.dairyLevel === 'high') {
     tips.push({
       title: 'Dieta: meno frequenza, non per forza perfezione',
-      body:
-        'Ridurre di 2-3 pasti di carne a settimana e alleggerire i latticini è spesso più efficace di tante micro-ottimizzazioni sparse.'
+      body: 'Ridurre di 2-3 pasti di carne a settimana e alleggerire i latticini è spesso più efficace di tante micro-ottimizzazioni sparse.'
     })
   } else if (values.shoppingLevel === 'high' || values.shoppingLevel === 'very-high') {
     tips.push({
       title: 'Consumi: comprare meno volte vale parecchio',
-      body:
-        'Se allunghi il ciclo di vita di vestiti, device e upgrade, la parte “invisibile” della footprint scende senza toccare il comfort quotidiano.'
+      body: 'Se allunghi il ciclo di vita di vestiti, device e upgrade, la parte “invisibile” della footprint scende senza toccare il comfort quotidiano.'
     })
   }
 
@@ -735,8 +796,7 @@ function buildChallenge(values, ordered) {
   if (largest?.[0] === 'Casa') {
     return {
       title: 'Settimana casa più sobria',
-      body:
-        'Per 7 giorni abbassa il riscaldamento di un grado equivalente, controlla gli standby e fai una piccola audit domestica stanza per stanza. Serve a capire quanta dispersione stai normalizzando.',
+      body: 'Per 7 giorni abbassa il riscaldamento di un grado equivalente, controlla gli standby e fai una piccola audit domestica stanza per stanza. Serve a capire quanta dispersione stai normalizzando.',
       checkpoint: 'Segna tre sprechi evitati e una modifica che puoi tenere fissa.',
       impact: '0,1–0,4 t/anno'
     }
@@ -745,8 +805,7 @@ function buildChallenge(values, ordered) {
   if (largest?.[0] === 'Dieta') {
     return {
       title: 'Settimana plant-forward senza fanatismi',
-      body:
-        'Per 7 giorni togli tre pasti di carne e alleggerisci i latticini più facili da sostituire. Non devi convertire la tua identità, solo testare il rapporto tra abitudine e impatto.',
+      body: 'Per 7 giorni togli tre pasti di carne e alleggerisci i latticini più facili da sostituire. Non devi convertire la tua identità, solo testare il rapporto tra abitudine e impatto.',
       checkpoint: 'Annota i pasti davvero sostituiti, non quelli solo immaginati.',
       impact: '0,1–0,3 t/anno'
     }
@@ -754,8 +813,7 @@ function buildChallenge(values, ordered) {
 
   return {
     title: 'Settimana zero upgrade impulsivi',
-    body:
-      'Per 7 giorni non comprare nulla di nuovo che non sia strettamente necessario. Se ti viene voglia di un upgrade, mettilo in lista e lascialo fermentare: spesso passa da solo.',
+    body: 'Per 7 giorni non comprare nulla di nuovo che non sia strettamente necessario. Se ti viene voglia di un upgrade, mettilo in lista e lascialo fermentare: spesso passa da solo.',
     checkpoint: 'Conta quante spese hai rimandato e quante erano davvero evitabili.',
     impact: '0,1–0,5 t/anno'
   }
@@ -776,23 +834,29 @@ function compareCopy(delta, reference) {
 }
 
 function updatePlanetMood(total) {
-  let score = 'Bilanciato'
-  let gradient = 'radial-gradient(circle at 30% 30%, #c7f8d9 0%, #59b87c 28%, #1f5f46 65%, #123f31 100%)'
-  let glow = '0 30px 80px rgba(22,77,56,0.28)'
+  let score = 'Da calcolare'
+  let gradient = 'radial-gradient(circle at 30% 30%, #edf0ee 0%, #c8d1cc 35%, #8a968f 72%, #69736e 100%)'
+  let glow = '0 28px 70px rgba(125, 134, 129, 0.18)'
 
-  if (total > 8) {
-    score = 'Sotto pressione'
-    gradient = 'radial-gradient(circle at 30% 30%, #f6d4a6 0%, #f2a24c 28%, #9b4a26 65%, #5b2415 100%)'
-    glow = '0 30px 80px rgba(173,88,37,0.28)'
-  } else if (total > 5) {
-    score = 'Da alleggerire'
-    gradient = 'radial-gradient(circle at 30% 30%, #dbf1b4 0%, #9ccf63 28%, #517b2c 65%, #25411a 100%)'
-    glow = '0 30px 80px rgba(108,136,54,0.26)'
+  if (typeof total === 'number') {
+    if (total > 8) {
+      score = 'Sotto pressione'
+      gradient = 'radial-gradient(circle at 30% 30%, #f6d4a6 0%, #f2a24c 28%, #9b4a26 65%, #5b2415 100%)'
+      glow = '0 30px 80px rgba(173,88,37,0.28)'
+    } else if (total > 5) {
+      score = 'Da alleggerire'
+      gradient = 'radial-gradient(circle at 30% 30%, #dbf1b4 0%, #9ccf63 28%, #517b2c 65%, #25411a 100%)'
+      glow = '0 30px 80px rgba(108,136,54,0.26)'
+    } else {
+      score = 'Bilanciato'
+      gradient = 'radial-gradient(circle at 30% 30%, #c7f8d9 0%, #59b87c 28%, #1f5f46 65%, #123f31 100%)'
+      glow = '0 30px 80px rgba(22,77,56,0.28)'
+    }
   }
 
   planetScore.textContent = score
   planetCard.style.background = gradient
-  planetCard.style.boxShadow = `inset -24px -24px 80px rgba(0,0,0,0.22), ${glow}`
+  planetCard.style.boxShadow = `inset -24px -24px 80px rgba(0,0,0,0.18), ${glow}`
 }
 
 function updateHeroMetrics() {
@@ -803,8 +867,8 @@ function updateHeroMetrics() {
   heroMetrics.innerHTML = `
     <div class="rounded-3xl border border-white/70 bg-white/78 p-5 shadow-card">
       <dt class="text-[13px] leading-5 text-[#5f6f68]">Rete elettrica</dt>
-      <dd class="mt-2 text-2xl font-bold text-pine">${country.electricityKgPerKwh.toFixed(2)} kg/kWh</dd>
-      <p class="mt-2 text-sm text-ink/65">Default trasparente per ${country.label.toLowerCase()}</p>
+      <dd class="mt-2 text-2xl font-bold text-pine">${country.electricityKgPerKwh.toFixed(3)} kg/kWh</dd>
+      <p class="mt-2 text-sm text-ink/65">Default 2024 per ${country.label.toLowerCase()}</p>
     </div>
     <div class="rounded-3xl border border-white/70 bg-white/78 p-5 shadow-card">
       <dt class="text-[13px] leading-5 text-[#5f6f68]">Riscaldamento</dt>
@@ -814,7 +878,7 @@ function updateHeroMetrics() {
     <div class="rounded-3xl border border-white/70 bg-white/78 p-5 shadow-card">
       <dt class="text-[13px] leading-5 text-[#5f6f68]">Metodo</dt>
       <dd class="mt-2 text-2xl font-bold text-pine">Stima chiara</dd>
-      <p class="mt-2 text-sm text-ink/65">12 driver, fattori dichiarati, niente precisione finta</p>
+      <p class="mt-2 text-sm text-ink/65">What-if continuo, leve visibili, assunzioni dichiarate</p>
     </div>
   `
 }
@@ -829,24 +893,54 @@ function heatingLabel(key) {
   }[key] || 'Default medio'
 }
 
-function updateWhatIf() {
-  if (!latestResult) return
+function resetWhatIfControls() {
+  if (whatIfCar) whatIfCar.value = 0
+  if (whatIfGreen) whatIfGreen.value = 0
+  if (whatIfFlight) whatIfFlight.checked = false
+  if (whatIfMeat) whatIfMeat.checked = false
+}
 
-  const carCut = Number(whatIfCar.value)
-  const greenBoost = Number(whatIfGreen.value)
-  whatIfCarValue.textContent = `${carCut}%`
-  whatIfGreenValue.textContent = `+${greenBoost} punti`
+function updateWhatIf() {
+  if (!latestResult) {
+    if (whatIfOutput) whatIfOutput.textContent = 'Calcola prima'
+    if (whatIfDelta) whatIfDelta.textContent = 'Serve una stima base per vedere il delta.'
+    return
+  }
+
+  const carCut = Number(whatIfCar?.value || 0)
+  const greenBoost = Number(whatIfGreen?.value || 0)
+  const cutFlight = Boolean(whatIfFlight?.checked)
+  const cutMeat = Boolean(whatIfMeat?.checked)
+
+  if (whatIfCarValue) whatIfCarValue.textContent = `${carCut}%`
+  if (whatIfGreenValue) whatIfGreenValue.textContent = `+${greenBoost}%`
+  if (whatIfFlightValue) whatIfFlightValue.textContent = cutFlight ? '−1 volo lungo' : 'nessun taglio'
+  if (whatIfMeatValue) whatIfMeatValue.textContent = cutMeat ? '−3 pasti carne' : 'nessun taglio'
 
   const values = { ...latestResult.values }
   values.carKm = round(values.carKm * (1 - carCut / 100), 0)
-  values.greenPower = String(Math.min(100, Number(values.greenPower) + greenBoost))
+  values.greenPower = Math.min(100, Number(values.greenPower) + greenBoost)
+  if (cutFlight) values.longFlights = Math.max(0, values.longFlights - 1)
+  if (cutMeat) values.meatMeals = Math.max(0, values.meatMeals - 3)
 
   const simulated = computeFootprint(values)
   const delta = round(latestResult.total - simulated.total)
 
-  whatIfOutput.textContent = `${format(simulated.total)} t`
+  whatIfOutput.textContent = `${formatPrecise(simulated.total)} t`
   whatIfDelta.textContent =
-    delta > 0 ? `Riduzione stimata: ${format(delta)} t CO₂e/anno` : 'Nessun cambiamento rispetto alla stima base.'
+    delta > 0 ? `Riduzione stimata: ${formatDelta(delta)}` : 'Nessun cambiamento rispetto alla stima base.'
+}
+
+function updateProgress() {
+  const values = getValues()
+  const completed = questions.filter((question) => {
+    const value = values[question.key]
+    if (question.type === 'select') return value !== undefined && value !== ''
+    return value !== undefined && value !== null && value !== ''
+  }).length
+  const percent = Math.round((completed / questions.length) * 100)
+  if (progressValue) progressValue.textContent = `${completed}/${questions.length}`
+  if (progressBar) progressBar.style.width = `${percent}%`
 }
 
 function setupReveal() {
@@ -866,11 +960,27 @@ function round(value, digits = 2) {
   return Number(value.toFixed(digits))
 }
 
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value))
+}
+
 function format(value) {
   return new Intl.NumberFormat('it-IT', {
     minimumFractionDigits: 1,
     maximumFractionDigits: 1
   }).format(value)
+}
+
+function formatPrecise(value) {
+  return new Intl.NumberFormat('it-IT', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(value)
+}
+
+function formatDelta(value) {
+  if (value < 0.1) return `${Math.round(value * 1000)} kg CO₂e/anno`
+  return `${formatPrecise(value)} t CO₂e/anno`
 }
 
 function formatInteger(value) {

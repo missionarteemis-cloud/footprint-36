@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>footprint 36</title>
+    <meta
+      name="description"
+      content="footprint 36 è una web app semplice e curata per capire la tua carbon footprint individuale, confrontarla con i target climatici e vedere dove puoi tagliare davvero."
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              pine: '#0f3d2e',
+              moss: '#2f6b4f',
+              leaf: '#59b87c',
+              foam: '#eef8f1',
+              sand: '#f6f0dd',
+              ink: '#10231c'
+            },
+            boxShadow: {
+              glow: '0 20px 60px rgba(40, 112, 78, 0.18)',
+              card: '0 18px 45px rgba(16, 35, 28, 0.08)'
+            },
+            fontFamily: {
+              sans: ['Inter', 'ui-sans-serif', 'system-ui']
+            }
+          }
+        }
+      }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body class="bg-[#f7f8f4] text-ink antialiased">
+    <div class="fixed inset-x-0 top-0 -z-10 h-[36rem] bg-[radial-gradient(circle_at_top,_rgba(89,184,124,0.20),_transparent_55%)]"></div>
+
+    <header class="sticky top-0 z-30 border-b border-white/60 bg-[#f7f8f4]/85 backdrop-blur-xl">
+      <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+        <a href="#top" class="flex items-center gap-3 font-semibold tracking-tight text-pine">
+          <span class="flex h-10 w-10 items-center justify-center rounded-full bg-pine text-sm font-bold text-white shadow-glow">36</span>
+          <span>footprint 36</span>
+        </a>
+        <nav class="hidden items-center gap-6 text-sm text-ink/70 md:flex">
+          <a class="nav-link" href="#capire">Capire</a>
+          <a class="nav-link" href="#rinnovabili">Rinnovabili</a>
+          <a class="nav-link" href="#calcolatore">Calcolatore</a>
+          <a class="nav-link" href="#metodo">Metodo</a>
+        </nav>
+        <button data-open-calculator type="button" class="cta-button rounded-full bg-pine px-4 py-2 text-sm font-semibold text-white shadow-card transition hover:-translate-y-0.5 hover:bg-moss">Calcola ora</button>
+      </div>
+      <div class="mx-auto grid max-w-7xl grid-cols-2 gap-2 px-4 pb-4 sm:px-6 md:hidden lg:px-8">
+        <a class="chip-link active-chip rounded-full border border-pine/10 bg-white px-4 py-3 text-center text-[14px] font-medium text-pine" href="#capire">Capire</a>
+        <a class="chip-link rounded-full border border-pine/10 bg-white px-4 py-3 text-center text-[14px] font-medium text-pine" href="#rinnovabili">Rinnovabili</a>
+        <a class="chip-link rounded-full border border-pine/10 bg-white px-4 py-3 text-center text-[14px] font-medium text-pine" href="#calcolatore">Calcolatore</a>
+        <a class="chip-link rounded-full border border-pine/10 bg-white px-4 py-3 text-center text-[14px] font-medium text-pine" href="#metodo">Metodo</a>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="mx-auto grid max-w-7xl gap-8 px-4 pb-10 pt-10 sm:px-6 sm:pb-12 lg:grid-cols-[1.1fr_0.9fr] lg:px-8 lg:pb-14 lg:pt-16">
+        <div class="max-w-2xl">
+          <div class="inline-flex items-center gap-2 rounded-full border border-moss/15 bg-white/70 px-3 py-1 text-sm text-moss shadow-sm">
+            <span class="h-2 w-2 rounded-full bg-leaf"></span>
+            Una stima rapida, leggibile, onesta
+          </div>
+          <h1 class="mt-6 text-[28px] font-extrabold leading-[1.08] text-pine sm:text-5xl lg:text-6xl">
+            Capisci la tua impronta climatica senza perderti in test infiniti.
+          </h1>
+          <p class="mt-6 max-w-xl text-lg leading-8 text-ink/75">
+            footprint 36 riduce il rumore e punta ai driver che contano davvero: come ti muovi, come vivi in casa, cosa mangi e quanto consumi. In pochi minuti ottieni una stima in tonnellate di CO₂e, il confronto con i target climatici e leve concrete per migliorare.
+          </p>
+          <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+            <button data-open-calculator type="button" class="rounded-full bg-pine px-6 py-3 text-center font-semibold text-white shadow-glow transition hover:-translate-y-0.5 hover:bg-moss">Apri il calcolatore</button>
+            <a href="#capire" class="rounded-full border border-pine/15 bg-white px-6 py-3 text-center font-semibold text-pine transition hover:-translate-y-0.5 hover:border-moss/30">Prima capisco il quadro</a>
+          </div>
+          <dl id="hero-metrics" class="mt-10 grid gap-4 sm:grid-cols-3"></dl>
+        </div>
+
+        <div class="relative overflow-hidden rounded-[2rem] border border-white/70 bg-[linear-gradient(180deg,_rgba(255,255,255,0.92),_rgba(235,246,238,0.95))] p-6 shadow-[0_16px_40px_rgba(10,35,25,0.10)] sm:p-8">
+          <div class="absolute right-6 top-6 rounded-full border border-white/70 bg-white/70 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-moss">Reactive Earth</div>
+          <div id="planet-card" class="planet-card mx-auto mt-8 flex h-64 w-64 items-center justify-center rounded-full bg-[radial-gradient(circle_at_30%_30%,_#c7f8d9_0%,_#59b87c_28%,_#1f5f46_65%,_#123f31_100%)] shadow-[inset_-24px_-24px_80px_rgba(0,0,0,0.22),0_20px_55px_rgba(22,77,56,0.20)] transition duration-500 sm:h-72 sm:w-72">
+            <div class="planet-glow absolute h-72 w-72 rounded-full bg-leaf/15 blur-3xl sm:h-80 sm:w-80"></div>
+            <div class="hero-orbit"></div>
+            <div class="relative flex h-full w-full items-center justify-center overflow-hidden rounded-full">
+              <div class="absolute inset-8 rounded-full border border-white/20"></div>
+              <div class="absolute left-8 top-12 h-16 w-24 rounded-full bg-white/12 blur-sm"></div>
+              <div class="absolute bottom-10 right-10 h-24 w-28 rounded-[45%] bg-[#0c3527]/45"></div>
+              <div class="absolute left-12 top-24 h-20 w-24 rounded-[40%] bg-[#154f3a]/55"></div>
+              <div class="absolute bottom-16 left-14 h-14 w-20 rounded-[45%] bg-[#0b2a20]/45"></div>
+              <div class="relative z-10 rounded-full border border-white/20 bg-white/10 px-5 py-3 text-center backdrop-blur-md">
+                <p class="text-xs uppercase tracking-[0.28em] text-white/70">stile di vita</p>
+                <p id="planet-score" class="mt-2 text-3xl font-extrabold text-white">Bilanciato</p>
+              </div>
+            </div>
+          </div>
+          <div class="mt-8 grid gap-3 sm:grid-cols-3">
+            <div class="rounded-2xl bg-white/80 p-4 shadow-card">
+              <p class="text-sm text-ink/55">Sei qui per</p>
+              <p class="mt-1 font-semibold text-pine">capire dove pesa davvero</p>
+            </div>
+            <div class="rounded-2xl bg-white/80 p-4 shadow-card">
+              <p class="text-sm text-ink/55">Non per</p>
+              <p class="mt-1 font-semibold text-pine">farti giudicare o spaventare</p>
+            </div>
+            <div class="rounded-2xl bg-white/80 p-4 shadow-card">
+              <p class="text-sm text-ink/55">Extra</p>
+              <p class="mt-1 font-semibold text-pine">what-if live sui tagli più utili</p>
+            </div>
+          </div>
+          <div class="mt-4 rounded-[1.5rem] border border-moss/10 bg-white/75 p-4 shadow-sm">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-[0.22em] text-moss">Preview risultato</p>
+                <p class="mt-2 text-lg font-bold text-pine">12 domande → 4 aree → 1 stima leggibile</p>
+              </div>
+              <div class="rounded-full bg-foam px-4 py-2 text-right">
+                <p class="text-xs text-ink/50">esempio</p>
+                <p class="text-xl font-bold text-pine">4,8 t</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="capire" class="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+        <div class="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
+          <div>
+            <p class="text-sm font-semibold uppercase tracking-[0.24em] text-moss">Capire la footprint</p>
+            <h2 class="mt-4 text-3xl font-bold text-pine sm:text-4xl">La carbon footprint è una scorciatoia utile, non una sentenza.</h2>
+          </div>
+          <p class="max-w-2xl text-lg leading-8 text-ink/72">
+            È la somma delle emissioni associate al tuo stile di vita in un anno. Non misura il tuo valore morale. Misura soprattutto energia, mobilità, cibo e acquisti. Se vuoi agire bene, serve una mappa leggibile dei grandi pezzi, non 90 domande minuscole.
+          </p>
+        </div>
+
+        <div class="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+          <article class="rounded-[1.75rem] border border-white/80 bg-white p-6 shadow-card reveal">
+            <div class="mb-5 inline-flex rounded-2xl bg-foam p-3 text-pine">🚗</div>
+            <h3 class="text-xl font-bold text-pine">Trasporti</h3>
+            <p class="mt-3 text-sm leading-7 text-ink/68">Auto privata e voli possono dominare il totale. Piccole differenze di km e frequenza cambiano molto il risultato.</p>
+          </article>
+          <article class="rounded-[1.75rem] border border-white/80 bg-white p-6 shadow-card reveal">
+            <div class="mb-5 inline-flex rounded-2xl bg-foam p-3 text-pine">🏠</div>
+            <h3 class="text-xl font-bold text-pine">Casa ed energia</h3>
+            <p class="mt-3 text-sm leading-7 text-ink/68">Riscaldamento, metri quadri, mix elettrico e persone in casa contano più della singola lampadina.</p>
+          </article>
+          <article class="rounded-[1.75rem] border border-white/80 bg-white p-6 shadow-card reveal">
+            <div class="mb-5 inline-flex rounded-2xl bg-foam p-3 text-pine">🥗</div>
+            <h3 class="text-xl font-bold text-pine">Dieta</h3>
+            <p class="mt-3 text-sm leading-7 text-ink/68">Carne bovina e latticini pesano molto più di altri dettagli. Non serve essere perfetti per vedere differenze reali.</p>
+          </article>
+          <article class="rounded-[1.75rem] border border-white/80 bg-white p-6 shadow-card reveal">
+            <div class="mb-5 inline-flex rounded-2xl bg-foam p-3 text-pine">🛍️</div>
+            <h3 class="text-xl font-bold text-pine">Consumi</h3>
+            <p class="mt-3 text-sm leading-7 text-ink/68">Vestiti, elettronica e shopping generale sono la parte meno intuitiva, ma spesso la più sottostimata.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="rinnovabili" class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div class="overflow-hidden rounded-[2rem] bg-pine text-white shadow-glow">
+          <div class="grid gap-10 px-6 py-10 sm:px-8 lg:grid-cols-[0.95fr_1.05fr] lg:px-12 lg:py-14">
+            <div>
+              <p class="text-sm font-semibold uppercase tracking-[0.24em] text-white/60">Rinnovabili, senza slogan</p>
+              <h2 class="mt-4 text-3xl font-bold sm:text-4xl">Perché energia pulita e efficienza sono leve enormi.</h2>
+              <p class="mt-5 max-w-[42rem] text-base leading-8 text-white/82">
+                Una quota elettrica più rinnovabile abbassa l'impatto di ogni kWh usato in casa, ma funziona ancora meglio se il fabbisogno è già contenuto: isolamento migliore, pompe di calore, elettrodomestici efficienti, meno sprechi termici. Il punto non è scegliere una sola leva. È farle lavorare insieme.
+              </p>
+            </div>
+            <div class="grid gap-4 md:grid-cols-2">
+              <div class="rounded-[1.6rem] border border-white/10 bg-white/8 p-5">
+                <p class="text-sm font-semibold text-[#BFD8CC]">Elettricità verde</p>
+                <p class="mt-2 text-2xl font-bold">Riduce il fattore di rete</p>
+                <p class="mt-3 text-[14px] leading-7 text-[#d7e4dd]">Non azzera tutto, ma abbassa una fetta che usi ogni giorno.</p>
+              </div>
+              <div class="rounded-[1.6rem] border border-white/10 bg-white/8 p-5">
+                <p class="text-sm font-semibold text-[#BFD8CC]">Pompa di calore</p>
+                <p class="mt-2 text-2xl font-bold">Taglio forte sul riscaldamento</p>
+                <p class="mt-3 text-[14px] leading-7 text-[#d7e4dd]">Spesso è il salto più importante in una casa oggi riscaldata a gas o gasolio.</p>
+              </div>
+              <div class="rounded-[1.6rem] border border-white/10 bg-white/8 p-5">
+                <p class="text-sm font-semibold text-[#BFD8CC]">Casa condivisa bene</p>
+                <p class="mt-2 text-2xl font-bold">Più efficienza per persona</p>
+                <p class="mt-3 text-[14px] leading-7 text-[#d7e4dd]">Metri quadri e impianti si spalmano tra più persone, quindi il peso pro capite scende.</p>
+              </div>
+              <div class="rounded-[1.6rem] border border-white/10 bg-white/8 p-5">
+                <p class="text-sm font-semibold text-[#BFD8CC]">Prima le priorità</p>
+                <p class="mt-2 text-2xl font-bold">Trasporti + casa spesso battono il resto</p>
+                <p class="mt-3 text-[14px] leading-7 text-[#d7e4dd]">Per questo il calcolatore parte dai driver grandi e solo dopo entra nel dettaglio.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="calcolatore" class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+        <div class="grid gap-8 xl:grid-cols-[1fr_1fr] xl:items-start">
+          <div class="rounded-[2rem] border border-white/80 bg-[linear-gradient(180deg,_rgba(255,255,255,0.95),_rgba(241,249,243,0.98))] p-6 shadow-card sm:p-8">
+            <p class="text-sm font-semibold uppercase tracking-[0.24em] text-moss">Paese e fattori</p>
+            <h2 class="mt-4 text-3xl font-bold text-pine">La rete elettrica cambia parecchio da paese a paese.</h2>
+            <p class="mt-4 text-base leading-8 text-ink/72">Per questo il calcolatore chiede dove vivi e usa una tabella esplicita di intensità elettrica. Non è un inventario scientifico completo, ma evita un errore grossolano: trattare Italia, Francia e Stati Uniti come se usassero la stessa elettricità.</p>
+            <div class="mt-6 overflow-hidden rounded-[1.5rem] border border-pine/10 bg-white/82 p-5">
+              <table class="data-table text-sm">
+                <thead>
+                  <tr class="text-left text-ink/48">
+                    <th class="pb-3 pr-4 font-medium">Paese</th>
+                    <th class="pb-3 pr-4 font-medium">Fattore rete</th>
+                    <th class="pb-3 font-medium">Nota</th>
+                  </tr>
+                </thead>
+                <tbody id="intensity-table"></tbody>
+              </table>
+            </div>
+            <p class="mt-4 text-[14px] leading-7 text-[#4B5A52]">Fonte orientativa: Ember electricity data e medie nazionali recenti 2023-2024, normalizzate in kg CO₂e/kWh. Restano default sensati, non misure personalizzate del tuo contratto.</p>
+          </div>
+          <aside class="rounded-[2rem] border border-white/80 bg-white p-6 shadow-card sm:p-7">
+            <p class="text-sm font-semibold uppercase tracking-[0.24em] text-moss">Calcolatore compatto</p>
+            <h2 class="mt-4 text-3xl font-bold text-pine">12 domande, non 120.</h2>
+            <p class="mt-4 text-base leading-8 text-ink/72">Inserisci stime ragionevoli, non perfette. Il modello è intenzionalmente semplice e trasparente: meglio un ordine di grandezza utile che una falsa precisione.</p>
+            <div class="mt-6 rounded-[1.5rem] bg-foam p-5 text-sm leading-7 text-ink/75">
+              <p class="font-semibold text-pine">Cosa ricevi:</p>
+              <ul class="mt-3 space-y-2">
+                <li>• Totale annuo in tonnellate di CO₂e</li>
+                <li>• Breakdown per area di impatto</li>
+                <li>• Confronto con target, Italia, UE e mondo</li>
+                <li>• Equivalente in “Pianeti”</li>
+                <li>• 2-3 consigli personalizzati</li>
+              </ul>
+            </div>
+          </aside>
+
+          <div class="rounded-[2rem] border border-white/80 bg-white p-6 shadow-card sm:p-8">
+            <div class="mb-6 flex flex-col gap-4 rounded-[1.6rem] border border-pine/10 bg-[#f8fbf8] p-5 lg:flex-row lg:items-center lg:justify-between">
+              <div class="max-w-xl">
+                <p class="text-sm font-semibold uppercase tracking-[0.2em] text-moss">Driver principali</p>
+                <h3 class="mt-2 text-xl font-bold text-pine">Inserisci una stima realistica e lascia perdere la falsa precisione.</h3>
+                <p class="mt-2 text-sm leading-7 text-ink/68">Il form pesa soprattutto mobilità, casa, dieta e consumi. Se un dato non lo sai al centesimo, resta su un ordine di grandezza credibile.</p>
+              </div>
+              <div class="rounded-[1.3rem] bg-white px-4 py-3 text-sm text-ink/60 shadow-sm">
+                <p class="font-semibold text-pine">Tempo medio</p>
+                <p class="mt-1">2–3 minuti</p>
+              </div>
+            </div>
+            <form id="calculator-form" class="grid gap-6 lg:grid-cols-2"></form>
+            <div class="mt-8 flex flex-wrap gap-3 lg:items-center">
+              <button id="calculate-btn" type="button" class="cta-button rounded-full bg-pine px-6 py-3 font-semibold text-white shadow-glow transition hover:-translate-y-0.5 hover:bg-moss">Calcola la mia footprint</button>
+              <button id="sample-btn" type="button" class="secondary-button rounded-full border border-pine/15 bg-white px-6 py-3 font-semibold text-pine transition hover:-translate-y-0.5 hover:border-moss/30">Compila un esempio</button>
+            </div>
+          </div>
+        </div>
+
+        <section id="results" class="mt-10 hidden rounded-[2rem] border border-white/80 bg-white p-6 shadow-card sm:p-8">
+          <div class="grid gap-8 xl:grid-cols-[0.9fr_1.1fr]">
+            <div>
+              <p class="text-sm font-semibold uppercase tracking-[0.24em] text-moss">Risultato stimato</p>
+              <div class="mt-4 flex flex-wrap items-end gap-4">
+                <div>
+                  <p id="total-output" class="text-5xl font-extrabold text-pine">0,0 t</p>
+                  <p class="mt-2 text-sm text-ink/65">CO₂e / anno</p>
+                </div>
+                <span id="band-output" class="rounded-full px-4 py-2 text-sm font-semibold"></span>
+              </div>
+              <p id="summary-output" class="mt-4 max-w-xl text-base leading-8 text-ink/74"></p>
+
+              <div class="mt-8 grid gap-4 sm:grid-cols-2">
+                <div class="rounded-[1.5rem] bg-foam p-5">
+                  <p class="text-sm text-ink/55">Confronto col target</p>
+                  <p id="target-output" class="mt-2 text-2xl font-bold text-pine"></p>
+                </div>
+                <div class="rounded-[1.5rem] bg-foam p-5">
+                  <p class="text-sm text-ink/55">Se vivessero tutti così</p>
+                  <p id="planet-output" class="mt-2 text-2xl font-bold text-pine"></p>
+                </div>
+              </div>
+
+              <div class="mt-8 grid gap-4 sm:grid-cols-3">
+                <div class="rounded-[1.5rem] border border-pine/10 bg-white p-4">
+                  <p class="text-sm text-ink/55">Italia</p>
+                  <p class="mt-2 text-xl font-bold text-pine">~6,2 t</p>
+                </div>
+                <div class="rounded-[1.5rem] border border-pine/10 bg-white p-4">
+                  <p class="text-sm text-ink/55">UE</p>
+                  <p class="mt-2 text-xl font-bold text-pine">~7,8 t</p>
+                </div>
+                <div class="rounded-[1.5rem] border border-pine/10 bg-white p-4">
+                  <p class="text-sm text-ink/55">Mondo</p>
+                  <p class="mt-2 text-xl font-bold text-pine">~6,6 t</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="space-y-6">
+              <div>
+                <div class="mb-4 flex items-center justify-between">
+                  <p class="text-lg font-bold text-pine">Breakdown</p>
+                  <p class="text-sm text-ink/55">stima indicativa</p>
+                </div>
+                <div id="bars" class="space-y-4"></div>
+              </div>
+
+              <div class="rounded-[1.75rem] bg-[#f5fbf6] p-5">
+                <p class="text-lg font-bold text-pine">What if live</p>
+                <p class="mt-2 text-sm leading-7 text-ink/70">Prova due tagli sensati e guarda quanto scende il totale. Non cambia il passato, ma chiarisce le leve migliori.</p>
+                <div class="mt-5 grid gap-5 md:grid-cols-2">
+                  <label class="block">
+                    <span class="mb-2 block text-sm font-medium text-ink/75">Riduci km in auto</span>
+                    <input id="whatif-car" type="range" min="0" max="100" step="5" value="0" class="w-full accent-moss" />
+                    <span id="whatif-car-value" class="mt-2 block text-sm text-ink/60">0%</span>
+                  </label>
+                  <label class="block">
+                    <span class="mb-2 block text-sm font-medium text-ink/75">Aumenti elettricità rinnovabile</span>
+                    <input id="whatif-green" type="range" min="0" max="100" step="10" value="0" class="w-full accent-moss" />
+                    <span id="whatif-green-value" class="mt-2 block text-sm text-ink/60">+0 punti</span>
+                  </label>
+                </div>
+                <div class="mt-5 rounded-[1.5rem] bg-white p-4">
+                  <p class="text-sm text-ink/55">Nuova stima simulata</p>
+                  <p id="whatif-output" class="mt-2 text-2xl font-bold text-pine">0,0 t</p>
+                  <p id="whatif-delta" class="mt-2 text-sm text-moss"></p>
+                </div>
+              </div>
+
+              <div>
+                <p class="text-lg font-bold text-pine">Leve consigliate</p>
+                <div id="tips" class="mt-4 grid gap-3"></div>
+              </div>
+
+              <div class="rounded-[1.75rem] border border-dashed border-pine/20 bg-white p-5">
+                <p class="text-lg font-bold text-pine">Challenge della settimana</p>
+                <p class="mt-2 text-sm leading-7 text-ink/70">Una micro-sfida realistica, cucita sul tuo profilo, per trasformare il risultato in una prova concreta di 7 giorni.</p>
+                <div id="weekly-challenge" class="mt-4"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <div id="calculator-modal" class="modal-shell hidden fixed inset-0 z-50 bg-[#081a14]/45 backdrop-blur-md" aria-hidden="true">
+        <div class="flex min-h-screen items-center justify-center px-4 py-6 sm:px-6">
+          <section id="calculator-panel" class="modal-panel max-h-[90vh] w-full max-w-6xl overflow-y-auto rounded-[2rem] border border-white/15 bg-[#f7f8f4] shadow-[0_40px_120px_rgba(8,26,20,0.32)]" role="dialog" aria-modal="true" aria-labelledby="calculator-title">
+            <div class="sticky top-0 z-10 flex items-center justify-between border-b border-pine/8 bg-[#f7f8f4]/92 px-5 py-4 backdrop-blur-xl sm:px-8">
+              <div>
+                <p class="text-sm font-semibold uppercase tracking-[0.22em] text-moss">Overlay calculator</p>
+                <h2 id="calculator-title" class="mt-1 text-xl font-bold text-pine">Calcola la tua footprint senza lasciare la homepage</h2>
+              </div>
+              <button id="close-calculator" type="button" class="secondary-button rounded-full border border-pine/15 bg-white px-4 py-2 font-semibold text-pine">Chiudi</button>
+            </div>
+            <div class="p-0">
+              <div class="grid gap-8 xl:grid-cols-[0.9fr_1.1fr] px-4 py-6 sm:px-6 lg:px-8">
+                <aside class="rounded-[2rem] border border-white/80 bg-white p-6 shadow-card sm:p-7">
+                  <p class="text-sm font-semibold uppercase tracking-[0.24em] text-moss">Calcolatore compatto</p>
+                  <h2 class="mt-4 text-3xl font-bold text-pine">12 domande, non 120.</h2>
+                  <p class="mt-4 text-base leading-8 text-ink/72">Inserisci stime ragionevoli, non perfette. Il modello è intenzionalmente semplice e trasparente: meglio un ordine di grandezza utile che una falsa precisione.</p>
+                  <div class="mt-6 rounded-[1.5rem] bg-foam p-5 text-sm leading-7 text-ink/75">
+                    <p class="font-semibold text-pine">Cosa ricevi:</p>
+                    <ul class="mt-3 space-y-2">
+                      <li>• Totale annuo in tonnellate di CO₂e</li>
+                      <li>• Breakdown per area di impatto</li>
+                      <li>• Confronto con target, Italia, UE e mondo</li>
+                      <li>• Equivalente in “Pianeti”</li>
+                      <li>• 2-3 consigli personalizzati</li>
+                    </ul>
+                  </div>
+                </aside>
+
+                <div class="rounded-[2rem] border border-white/80 bg-white p-6 shadow-card sm:p-8">
+                  <div class="mb-6 flex flex-col gap-4 rounded-[1.6rem] border border-pine/10 bg-[#f8fbf8] p-5 lg:flex-row lg:items-center lg:justify-between">
+                    <div class="max-w-xl">
+                      <p class="text-sm font-semibold uppercase tracking-[0.2em] text-moss">Driver principali</p>
+                      <h3 class="mt-2 text-xl font-bold text-pine">Inserisci una stima realistica e lascia perdere la falsa precisione.</h3>
+                      <p class="mt-2 text-sm leading-7 text-ink/68">Il form pesa soprattutto mobilità, casa, dieta e consumi. Se un dato non lo sai al centesimo, resta su un ordine di grandezza credibile.</p>
+                    </div>
+                    <div class="rounded-[1.3rem] bg-white px-4 py-3 text-sm text-ink/60 shadow-sm">
+                      <p class="font-semibold text-pine">Tempo medio</p>
+                      <p class="mt-1">2–3 minuti</p>
+                    </div>
+                  </div>
+                  <form id="calculator-form" class="grid gap-6 lg:grid-cols-2"></form>
+                  <div class="mt-8 flex flex-wrap gap-3 lg:items-center">
+                    <button id="calculate-btn" type="button" class="cta-button rounded-full bg-pine px-6 py-3 font-semibold text-white shadow-glow transition hover:-translate-y-0.5 hover:bg-moss">Calcola la mia footprint</button>
+                    <button id="sample-btn" type="button" class="secondary-button rounded-full border border-pine/15 bg-white px-6 py-3 font-semibold text-pine transition hover:-translate-y-0.5 hover:border-moss/30">Compila un esempio</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <section class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <div class="grid gap-5 lg:grid-cols-3">
+          <article class="metric-card rounded-[2rem] border border-white/80 bg-white p-6 shadow-card reveal">
+            <p class="text-sm font-semibold uppercase tracking-[0.2em] text-moss">01 · Contesto</p>
+            <h3 class="mt-3 text-2xl font-bold text-pine">Paese, casa, mobilità</h3>
+            <p class="mt-3 text-base leading-7 text-ink/70">La stima parte da pochi dati ad alto impatto. Non prova a sapere tutto di te, prova a non sbagliare i pezzi grossi.</p>
+          </article>
+          <article class="metric-card rounded-[2rem] border border-white/80 bg-white p-6 shadow-card reveal">
+            <p class="text-sm font-semibold uppercase tracking-[0.2em] text-moss">02 · Lettura</p>
+            <h3 class="mt-3 text-2xl font-bold text-pine">4 aree, 1 totale leggibile</h3>
+            <p class="mt-3 text-base leading-7 text-ink/70">Trasporti, casa, dieta, consumi. Il componente narrativo resta sempre lo stesso, così il risultato non sembra magia nera.</p>
+          </article>
+          <article class="metric-card rounded-[2rem] border border-white/80 bg-white p-6 shadow-card reveal">
+            <p class="text-sm font-semibold uppercase tracking-[0.2em] text-moss">03 · Azione</p>
+            <h3 class="mt-3 text-2xl font-bold text-pine">What-if e challenge concreta</h3>
+            <p class="mt-3 text-base leading-7 text-ink/70">Non ti lasciamo con un numerone astratto: vedi le leve migliori e una micro-sfida settimanale già pronta da testare.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="metodo" class="mx-auto max-w-7xl px-4 pb-24 sm:px-6 lg:px-8">
+        <div class="rounded-[2rem] border border-white/80 bg-white p-6 shadow-card sm:p-8">
+          <div class="grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
+            <div>
+              <p class="text-sm font-semibold uppercase tracking-[0.24em] text-moss">Metodo trasparente</p>
+              <h2 class="mt-4 text-3xl font-bold text-pine">Una stima semplificata, con assunzioni dichiarate.</h2>
+              <p class="mt-4 text-base leading-8 text-ink/72">
+                Il modello usa fattori medi indicativi, pensati per orientare le decisioni. Non sostituisce un inventario scientifico completo, ma è utile per capire i grandi ordini di grandezza individuali.
+              </p>
+            </div>
+            <div class="grid gap-4 md:grid-cols-2">
+              <div class="rounded-[1.5rem] bg-foam p-5 text-[14px] leading-7 text-ink/74">
+                <p class="font-semibold text-pine">1. Trasporti</p>
+                <p>Auto: 0,06–0,21 kg CO₂e/km. Mezzi pubblici: ~0,05 kg/km. Voli: ~0,35 t corto, ~1,6 t lungo.</p>
+              </div>
+              <div class="rounded-[1.5rem] bg-foam p-5 text-[14px] leading-7 text-ink/74">
+                <p class="font-semibold text-pine">2. Casa</p>
+                <p>Stimiamo riscaldamento e elettricità per m², poi dividiamo per il numero di persone che condividono la casa.</p>
+              </div>
+              <div class="rounded-[1.5rem] bg-foam p-5 text-[14px] leading-7 text-ink/74">
+                <p class="font-semibold text-pine">3. Dieta</p>
+                <p>La base parte da un profilo plant-forward e cresce con frequenza di carne e latticini.</p>
+              </div>
+              <div class="rounded-[1.5rem] bg-foam p-5 text-[14px] leading-7 text-ink/74">
+                <p class="font-semibold text-pine">4. Consumi</p>
+                <p>Shopping e upgrade entrano come classe di intensità, utile per cogliere la differenza tra acquisto sobrio e ritmo alto.</p>
+              </div>
+            </div>
+          </div>
+          <p class="mt-8 text-sm leading-7 text-ink/58">Riferimenti sintetici usati per il confronto: target clima ~2,5 t CO₂e pro capite, media Italia ~5,4–7 t, media UE ~8 t, media mondo ~6,6 t. Le cifre reali cambiano per paese, rete elettrica, efficienza dell'abitazione e molti altri dettagli.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="border-t border-pine/8 bg-white/70">
+      <div class="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-6 text-sm text-ink/55 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
+        <p>footprint 36 · carbon footprint individuale, spiegata bene.</p>
+        <p>Stima indicativa, lato client, senza backend.</p>
+      </div>
+    </footer>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

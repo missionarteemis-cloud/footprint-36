@@ -199,12 +199,35 @@ select:focus {
   box-shadow: 0 0 0 4px rgba(89, 184, 124, 0.16);
 }
 
+.question-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.question-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(89, 184, 124, 0.04), rgba(89, 184, 124, 0));
+  opacity: 0;
+  transition: opacity 180ms ease;
+  pointer-events: none;
+}
+
+.question-card:hover::after,
+.question-card:focus-within::after {
+  opacity: 1;
+}
+
 label span.label-title {
   display: block;
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.7rem;
   color: rgba(16, 35, 28, 0.82);
   font-size: 0.95rem;
-  font-weight: 600;
+  font-weight: 700;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
 }
 
 .range-field {
@@ -277,6 +300,17 @@ input[type='range'] {
   letter-spacing: -0.02em;
   color: #0f3d2e;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 12px 24px rgba(16, 35, 28, 0.06);
+  transition: transform 150ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.wheel-display:hover,
+.wheel-display:focus-visible {
+  border-color: rgba(47, 107, 79, 0.28);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 16px 28px rgba(16, 35, 28, 0.1);
+}
+
+.wheel-display.wheel-bump {
+  animation: wheelBump 180ms ease;
 }
 
 .wheel-scale {
@@ -285,6 +319,15 @@ input[type='range'] {
   gap: 0.75rem;
   font-size: 0.78rem;
   color: rgba(16, 35, 28, 0.48);
+}
+
+@keyframes wheelBump {
+  0% {
+    transform: scale(0.985);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .bar-track {

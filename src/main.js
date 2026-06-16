@@ -330,7 +330,7 @@ function renderForm() {
 
 function renderQuestion(question) {
   return `
-    <label class="block rounded-[1.45rem] border border-pine/10 bg-white p-4 transition hover:-translate-y-0.5 hover:border-moss/20">
+    <label class="question-card block rounded-[1.45rem] border border-pine/10 bg-white p-4 transition hover:-translate-y-0.5 hover:border-moss/20">
       <span class="label-title">${question.label}</span>
       ${renderField(question)}
     </label>
@@ -389,7 +389,7 @@ function renderField(question) {
         </div>
         <div class="wheel-scale" aria-hidden="true">
           <span>−${question.step}</span>
-          <span>scorri o usa ↑↓</span>
+          <span>${question.unit} · scorri o usa ↑↓</span>
           <span>+${question.step}</span>
         </div>
       </div>
@@ -478,6 +478,7 @@ function setupWheelInputs() {
     const display = root.querySelector('[data-wheel-display]')
     const question = questions.find((item) => item.key === input.id)
     const step = Number(input.step || question?.step || 1)
+    let wheelDeltaBuffer = 0
 
     root.querySelector('[data-wheel-decrement]')?.addEventListener('click', () => adjustWheel(input, display, -step, question))
     root.querySelector('[data-wheel-increment]')?.addEventListener('click', () => adjustWheel(input, display, step, question))
@@ -513,8 +514,11 @@ function setupWheelInputs() {
       'wheel',
       (event) => {
         event.preventDefault()
-        const delta = event.deltaY > 0 ? -step : step
-        adjustWheel(input, display, delta, question)
+        wheelDeltaBuffer += event.deltaY
+        if (Math.abs(wheelDeltaBuffer) < 16) return
+        const direction = wheelDeltaBuffer > 0 ? -1 : 1
+        wheelDeltaBuffer = 0
+        adjustWheel(input, display, direction * step, question)
       },
       { passive: false }
     )
@@ -555,6 +559,9 @@ function setWheelValue(input, display, nextValue, question, dispatch = true) {
   display.textContent = `${formatInteger(clamped)} ${question.unit}`
   display.setAttribute('aria-valuenow', String(clamped))
   display.setAttribute('aria-valuetext', `${formatInteger(clamped)} ${question.unit}`)
+  display.classList.remove('wheel-bump')
+  void display.offsetWidth
+  display.classList.add('wheel-bump')
   if (dispatch) input.dispatchEvent(new Event('input', { bubbles: true }))
 }
 
@@ -725,7 +732,7 @@ function renderChallenge(challenge) {
 }
 
 function renderGridIntensityTable() {
-  intensityTable.innerHTML = ['it', 'fr', 'de', 'es', 'uk', 'us', 'eu']
+  intensityTable.innerHTML = ['it', 'fr', 'de', 'es', 'uk', 'us', 'eu', 'world']
     .map((key) => COUNTRY_GRID_FACTORS[key])
     .map(
       (item) => `

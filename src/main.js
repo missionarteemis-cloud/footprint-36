@@ -9,6 +9,14 @@ const COUNTRY_GRID_FACTORS = {
   world: { label: 'Media mondo', electricityKgPerKwh: 0.445, heatingFallback: 'gas', heatingNote: 'Riferimento globale 2024, usato solo come confronto.' }
 }
 
+// Media pro-capite (t CO₂e/persona/anno) — stime reali (GHG/consumo, fonti 2020-2023:
+// Our World in Data, Eurostat, EDGAR/JRC). Usate per la card "media nel tuo paese".
+const COUNTRY_AVG = {
+  it: 6.4, fr: 5.8, de: 8.8, es: 5.8, uk: 6.0, us: 14.0, eu: 9.0, world: 6.6
+}
+const FAIR_TARGET = 2.5 // quota equa a persona per restare entro 1.5°C (2030)
+const AVG_SCALE_MAX = 16 // scala dell'SVG in t/anno
+
 const questions = [
   {
     key: 'country',
@@ -27,17 +35,6 @@ const questions = [
     ]
   },
   {
-    key: 'carKm',
-    label: 'Quanti km fai in auto in un anno?',
-    type: 'wheel',
-    min: 0,
-    max: 50000,
-    step: 20,
-    defaultValue: 8000,
-    unit: 'km/anno',
-    group: 'Trasporti'
-  },
-  {
     key: 'carType',
     label: 'Che auto usi più spesso?',
     type: 'select',
@@ -50,6 +47,17 @@ const questions = [
       ['hybrid', 'Ibrida'],
       ['ev', 'Elettrica']
     ]
+  },
+  {
+    key: 'carKm',
+    label: 'Quanti km fai in auto in un anno?',
+    type: 'wheel',
+    min: 0,
+    max: 50000,
+    step: 500,
+    defaultValue: 8000,
+    unit: 'km/anno',
+    group: 'Trasporti'
   },
   {
     key: 'publicKmWeek',
@@ -261,12 +269,15 @@ const progressBar = document.querySelector('#progress-bar')
 
 let latestResult = null
 let lastFocusedElement = null
+const touchedFields = new Set() // domande che l'utente ha effettivamente toccato
 
 renderForm()
 renderGridIntensityTable()
+renderCountryAverage()
 setupReveal()
 setupModal()
 setupWheelInputs()
+syncCarKmLock()
 updatePlanetMood(null)
 updateHeroMetrics()
 updateProgress()
@@ -316,15 +327,21 @@ function renderForm() {
 
   const countrySelect = document.querySelector('#country')
   const heatingSelect = document.querySelector('#heatingType')
+  const carTypeSelect = document.querySelector('#carType')
   countrySelect?.addEventListener('change', () => {
     applyCountryDefaults(false)
     updateHeroMetrics()
   })
   heatingSelect?.addEventListener('change', updateHeroMetrics)
+  carTypeSelect?.addEventListener('change', syncCarKmLock)
 
   form.querySelectorAll('input, select').forEach((element) => {
-    element.addEventListener('input', updateProgress)
-    element.addEventListener('change', updateProgress)
+    const markTouched = () => {
+      if (element.id) touchedFields.add(element.id)
+      updateProgress()
+    }
+    element.addEventListener('input', markTouched)
+    element.addEventListener('change', markTouched)
   })
 }
 
@@ -340,7 +357,7 @@ function renderQuestion(question) {
 function renderField(question) {
   if (question.type === 'select') {
     return `<select id="${question.key}" name="${question.key}" aria-label="${question.label}">
-      ${question.options.map(([value, label]) => `<option value="${value}">${label}</option>`).join('')}
+      ${question.options.map(([value, label]) => `<option value="${value}"${value === question.defaultValue ? ' selected' : ''}>${label}</option>`).join('')}
     </select>`
   }
 
@@ -383,7 +400,7 @@ function renderField(question) {
               aria-valuemax="${question.max}"
               aria-valuenow="${question.defaultValue}"
               aria-valuetext="${question.defaultValue} ${question.unit}"
-            >${formatInteger(question.defaultValue)} ${question.unit}</div>
+            ><span class="wheel-num">${formatInteger(question.defaultValue)}</span><span class="wheel-unit">${question.unit}</span></div>
           </div>
           <button type="button" class="wheel-button" data-wheel-increment aria-label="Aumenta ${question.label}">+</button>
         </div>
@@ -401,10 +418,10 @@ function renderField(question) {
 
 function groupDescription(group) {
   return {
-    Trasporti: 'Auto, mezzi e voli che pesano di più sul totale.',
-    Casa: 'Spazio, persone, rete elettrica e riscaldamento.',
-    Dieta: 'Abitudini alimentari ad alto impatto annuale.',
-    Consumi: 'Shopping, upgrade e acquisti meno intuitivi.'
+    Trasporti: 'Come ti muovi di solito: auto, mezzi, voli.',
+    Casa: 'La tua casa: spazio, persone, energia.',
+    Dieta: 'Cosa porti in tavola, più o meno.',
+    Consumi: 'Quanto compri di nuovo, tra vestiti e oggetti.'
   }[group]
 }
 
@@ -556,7 +573,7 @@ function setWheelValue(input, display, nextValue, question, dispatch = true) {
   const step = Number(input.step || 1)
   const clamped = Math.min(max, Math.max(min, Math.round(nextValue / step) * step))
   input.value = clamped
-  display.textContent = `${formatInteger(clamped)} ${question.unit}`
+  display.innerHTML = `<span class="wheel-num">${formatInteger(clamped)}</span><span class="wheel-unit">${question.unit}</span>`
   display.setAttribute('aria-valuenow', String(clamped))
   display.setAttribute('aria-valuetext', `${formatInteger(clamped)} ${question.unit}`)
   display.classList.remove('wheel-bump')
@@ -576,6 +593,29 @@ function applyCountryDefaults(initial = false) {
   }
 }
 
+function syncCarKmLock() {
+  // I km auto contano solo se è selezionato un tipo di auto reale.
+  // Con "Non uso auto privata" il picker si blocca (dimmed) e mostra il perché,
+  // così non si inseriscono km che poi il calcolo ignora silenziosamente.
+  const carType = document.querySelector('#carType')
+  const root = document.querySelector('#carKm')?.closest('[data-wheel-root]')
+  if (!carType || !root) return
+  const locked = carType.value === 'none'
+  root.classList.toggle('wheel-locked', locked)
+
+  const display = root.querySelector('[data-wheel-display]')
+  if (display) {
+    display.setAttribute('tabindex', locked ? '-1' : '0')
+    display.setAttribute('aria-disabled', locked ? 'true' : 'false')
+  }
+  root.querySelectorAll('.wheel-button').forEach((btn) => {
+    btn.disabled = locked
+  })
+
+  const hint = root.querySelector('.wheel-scale span:nth-child(2)')
+  if (hint) hint.textContent = locked ? 'Scegli prima un tipo di auto ↑' : 'km/anno · scorri o usa ↑↓'
+}
+
 function getValues() {
   return questions.reduce((acc, question) => {
     const element = document.querySelector(`#${question.key}`)
@@ -589,7 +629,9 @@ function fillSample(values) {
   Object.entries(values).forEach(([key, value]) => {
     const element = document.querySelector(`#${key}`)
     if (element) element.value = value
+    touchedFields.add(key)
   })
+  syncWheelDisplays()
   updateHeroMetrics()
   updateRangeDisplays()
   updateProgress()
@@ -729,6 +771,76 @@ function renderChallenge(challenge) {
       <p class="mt-3 text-sm font-medium text-ink/72">Checkpoint: ${challenge.checkpoint}</p>
     </article>
   `
+}
+
+function renderCountryAverage() {
+  const select = document.querySelector('#avg-country')
+  const numberEl = document.querySelector('#country-avg-number')
+  const placeEl = document.querySelector('#country-avg-place')
+  const svgEl = document.querySelector('#country-avg-svg')
+  const captionEl = document.querySelector('#country-avg-caption')
+  if (!svgEl) return
+
+  const W = 640, H = 128, x0 = 48, x1 = 480, trackY = 76, trackH = 16
+  const span = x1 - x0
+  const cy = trackY + trackH / 2
+  const xFor = (t) => x0 + (clamp(t, 0, AVG_SCALE_MAX) / AVG_SCALE_MAX) * span
+  const xTarget = xFor(FAIR_TARGET)
+  const xWorld = xFor(COUNTRY_AVG.world)
+  const TS_TONS = 8293 // jet privato Taylor Swift 2022 (stima Yard), ~1.100× una persona media
+
+  // Scheletro statico disegnato UNA volta: solo il marker-paese si muove (transform animato).
+  svgEl.innerHTML = `
+    <svg viewBox="0 0 ${W} ${H}" class="w-full" role="img" aria-label="Confronto medie pro-capite di CO2e l'anno: traguardo ${format(FAIR_TARGET)} t, media mondo ${format(COUNTRY_AVG.world)} t, e — fuori scala — il jet di Taylor Swift ~${formatInteger(TS_TONS)} t.">
+      <defs>
+        <linearGradient id="avgGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#59b87c"/>
+          <stop offset="45%" stop-color="#f2c14e"/>
+          <stop offset="100%" stop-color="#e2725b"/>
+        </linearGradient>
+      </defs>
+      <rect x="${x0}" y="${trackY}" width="${span}" height="${trackH}" rx="${trackH / 2}" fill="url(#avgGrad)" opacity="0.92"/>
+      <line x1="${xTarget}" y1="${trackY - 8}" x2="${xTarget}" y2="${trackY + trackH + 8}" stroke="#0f3d2e" stroke-width="2" stroke-dasharray="3 3"/>
+      <text x="${xTarget}" y="${trackY + trackH + 22}" text-anchor="middle" font-size="12" fill="#0f3d2e" font-weight="600">Target ${format(FAIR_TARGET)}</text>
+      <circle cx="${xWorld}" cy="${cy}" r="5" fill="#6b7b73" stroke="#fff" stroke-width="2"/>
+      <text x="${xWorld}" y="${trackY + trackH + 22}" text-anchor="middle" font-size="11" fill="#6b7b73">Mondo ${format(COUNTRY_AVG.world)}</text>
+      <g class="ts-marker">
+        <text x="${x1 + 12}" y="${cy + 2}" text-anchor="start" font-size="15" fill="#9a3b6b">≫</text>
+        <text x="${x1 + 30}" y="${cy - 3}" text-anchor="start" font-size="11" fill="#9a3b6b" font-weight="700">✈ Taylor Swift</text>
+        <text x="${x1 + 30}" y="${cy + 13}" text-anchor="start" font-size="11" fill="#9a3b6b" font-weight="800">~8.293 t</text>
+      </g>
+      <g class="avg-marker" id="avg-marker">
+        <circle cx="0" cy="${cy}" r="11" fill="#b4531f" stroke="#fff" stroke-width="3"/>
+        <text id="avg-marker-label" x="0" y="${trackY - 9}" text-anchor="middle" font-size="14" fill="#0f3d2e" font-weight="800"></text>
+      </g>
+    </svg>
+  `
+
+  const marker = svgEl.querySelector('#avg-marker')
+  const markerLabel = svgEl.querySelector('#avg-marker-label')
+
+  function update(code, animate = true) {
+    const avg = COUNTRY_AVG[code] ?? COUNTRY_AVG.eu
+    const label = (COUNTRY_GRID_FACTORS[code] || COUNTRY_GRID_FACTORS.eu).label
+    const xAvg = xFor(avg)
+
+    if (numberEl) numberEl.textContent = `≈ ${format(avg)} t`
+    if (placeEl) placeEl.textContent = label
+    if (captionEl) captionEl.textContent = `stima media pro-capite · traguardo ${format(FAIR_TARGET)} t/anno`
+    if (markerLabel) {
+      markerLabel.textContent = `${label} ≈ ${format(avg)} t`
+      // tiene il label dentro i bordi della barra anche per valori estremi (es. USA)
+      markerLabel.setAttribute('x', String(clamp(xAvg, x0 + 78, x1 - 78) - xAvg))
+    }
+    if (marker) {
+      if (!animate) marker.style.transition = 'none'
+      marker.style.transform = `translateX(${xAvg}px)`
+      if (!animate) requestAnimationFrame(() => { marker.style.transition = '' })
+    }
+  }
+
+  update(select ? select.value : 'it', false)
+  select?.addEventListener('change', () => update(select.value, true))
 }
 
 function renderGridIntensityTable() {
@@ -939,12 +1051,9 @@ function updateWhatIf() {
 }
 
 function updateProgress() {
-  const values = getValues()
-  const completed = questions.filter((question) => {
-    const value = values[question.key]
-    if (question.type === 'select') return value !== undefined && value !== ''
-    return value !== undefined && value !== null && value !== ''
-  }).length
+  // Conta i campi che l'utente ha toccato (non i default), così il progress parte da 0
+  // e sale man mano che si risponde — invece di mostrare 13/13 all'apertura.
+  const completed = questions.filter((question) => touchedFields.has(question.key)).length
   const percent = Math.round((completed / questions.length) * 100)
   if (progressValue) progressValue.textContent = `${completed}/${questions.length}`
   if (progressBar) progressBar.style.width = `${percent}%`

@@ -781,7 +781,7 @@ function renderCountryAverage() {
   const captionEl = document.querySelector('#country-avg-caption')
   if (!svgEl) return
 
-  const W = 640, H = 128, x0 = 48, x1 = 480, trackY = 76, trackH = 16
+  const W = 680, H = 128, x0 = 48, x1 = 480, trackY = 76, trackH = 16
   const span = x1 - x0
   const cy = trackY + trackH / 2
   const xFor = (t) => x0 + (clamp(t, 0, AVG_SCALE_MAX) / AVG_SCALE_MAX) * span
@@ -800,14 +800,16 @@ function renderCountryAverage() {
         </linearGradient>
       </defs>
       <rect x="${x0}" y="${trackY}" width="${span}" height="${trackH}" rx="${trackH / 2}" fill="url(#avgGrad)" opacity="0.92"/>
+      <text x="${x0}" y="${trackY + trackH + 22}" text-anchor="start" font-size="10" fill="#9aa49e">0</text>
+      <text x="${x1}" y="${trackY + trackH + 22}" text-anchor="end" font-size="10" fill="#9aa49e">${AVG_SCALE_MAX} t</text>
       <line x1="${xTarget}" y1="${trackY - 8}" x2="${xTarget}" y2="${trackY + trackH + 8}" stroke="#0f3d2e" stroke-width="2" stroke-dasharray="3 3"/>
       <text x="${xTarget}" y="${trackY + trackH + 22}" text-anchor="middle" font-size="12" fill="#0f3d2e" font-weight="600">Target ${format(FAIR_TARGET)}</text>
       <circle cx="${xWorld}" cy="${cy}" r="5" fill="#6b7b73" stroke="#fff" stroke-width="2"/>
       <text x="${xWorld}" y="${trackY + trackH + 22}" text-anchor="middle" font-size="11" fill="#6b7b73">Mondo ${format(COUNTRY_AVG.world)}</text>
       <g class="ts-marker">
-        <text x="${x1 + 12}" y="${cy + 2}" text-anchor="start" font-size="15" fill="#9a3b6b">≫</text>
-        <text x="${x1 + 30}" y="${cy - 3}" text-anchor="start" font-size="11" fill="#9a3b6b" font-weight="700">✈ Taylor Swift</text>
-        <text x="${x1 + 30}" y="${cy + 13}" text-anchor="start" font-size="11" fill="#9a3b6b" font-weight="800">~8.293 t</text>
+        <line x1="${x1 + 52}" y1="${trackY - 7}" x2="${x1 + 52}" y2="${trackY + trackH + 9}" stroke="#9a3b6b" stroke-width="2" stroke-dasharray="3 3"/>
+        <text x="${x1 + 66}" y="${cy - 3}" text-anchor="start" font-size="11" fill="#9a3b6b" font-weight="700">✈ Taylor Swift</text>
+        <text x="${x1 + 66}" y="${cy + 13}" text-anchor="start" font-size="11" fill="#9a3b6b" font-weight="800">~8.293 t</text>
       </g>
       <g class="avg-marker" id="avg-marker">
         <circle cx="0" cy="${cy}" r="11" fill="#b4531f" stroke="#fff" stroke-width="3"/>
